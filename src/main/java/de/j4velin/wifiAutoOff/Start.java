@@ -132,7 +132,7 @@ abstract class Start {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             // on O and later, the APILevel26ForegroundService handles this
-            if (prefs.getBoolean("off_screen_off", true) || prefs.getBoolean("on_unlock", true)) {
+            if (prefs.getBoolean("off_screen_off", true) || prefs.getBoolean("on_unlock", true) || prefs.getBoolean("on_screen_on", false)) {
                 c.startService(new Intent(c, ScreenChangeDetector.class));
             } else {
                 c.stopService(new Intent(c, ScreenChangeDetector.class));

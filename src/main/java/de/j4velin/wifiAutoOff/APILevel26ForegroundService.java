@@ -79,7 +79,7 @@ public class APILevel26ForegroundService extends Service {
                 registered = true;
             }
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            if (prefs.getBoolean("off_screen_off", true) || prefs.getBoolean("on_unlock", true)) {
+            if (prefs.getBoolean("off_screen_off", true) || prefs.getBoolean("on_unlock", true) || prefs.getBoolean("on_screen_on", false)) {
                 if (screenOffReceiver == null) {
                     screenOffReceiver = new ScreenChangeDetector.ScreenOffReceiver();
                 }

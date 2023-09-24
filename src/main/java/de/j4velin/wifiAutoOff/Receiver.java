@@ -112,7 +112,7 @@ public class Receiver extends BroadcastReceiver {
      * @return default SharedPreferences for given context
      */
     @SuppressLint("InlinedApi")
-    private static SharedPreferences getSharedPreferences(final Context context) {
+    public static SharedPreferences getSharedPreferences(final Context context) {
         String prefFileName = context.getPackageName() + "_preferences";
         return context.getSharedPreferences(prefFileName, Context.MODE_MULTI_PROCESS);
     }
@@ -246,15 +246,28 @@ public class Receiver extends BroadcastReceiver {
                 case UnlockReceiver.USER_PRESENT_ACTION:
                 case Intent.ACTION_USER_PRESENT:
                 case ScreenChangeDetector.SCREEN_ON_ACTION:
-                    if (action.equals(ScreenChangeDetector.SCREEN_ON_ACTION)) {
+                    final boolean screenOn = action.equals(ScreenChangeDetector.SCREEN_ON_ACTION);
+                    if (screenOn) {
                         Log.insert(context, R.string.event_screen_on, Log.Type.SCREEN_ON);
                     } else {
                         Log.insert(context, R.string.event_unlocked, Log.Type.UNLOCKED);
                     }
-                    // user unlocked the device -> stop TIMER_SCREEN_OFF, might turn on
-                    // WiFi
-                    stopTimer(context, TIMER_SCREEN_OFF);
-                    if (prefs.getBoolean("on_unlock", true)) {
+                    final boolean pref_on_screen_on = prefs.getBoolean("on_screen_on", false);
+                    if (pref_on_screen_on && screenOn) {
+                        boolean screenOffTimer = stopTimer(context, TIMER_SCREEN_OFF);
+                        if (!((WifiManager) context.getApplicationContext()
+                                .getSystemService(Context.WIFI_SERVICE)).isWifiEnabled()) {
+                            changeWiFi(context, true);
+                        }
+                        if (screenOffTimer) {
+                            startTimer(context, TIMER_SCREEN_OFF,
+                                    prefs.getInt("screen_off_timeout", TIMEOUT_SCREEN_OFF));
+                        }
+                    }
+                    if ((pref_on_screen_on && !screenOn) || prefs.getBoolean("on_unlock", true)) {
+                        // user unlocked the device -> stop TIMER_SCREEN_OFF, might turn on
+                        // WiFi
+                        stopTimer(context, TIMER_SCREEN_OFF);
                         boolean noNetTimer = stopTimer(context, TIMER_NO_NETWORK);
                         if (((WifiManager) context.getApplicationContext()
                                 .getSystemService(Context.WIFI_SERVICE)).isWifiEnabled()) {
